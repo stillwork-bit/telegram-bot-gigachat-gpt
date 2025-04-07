@@ -1,4 +1,4 @@
-package org.bot.DTO;
+package org.tan.bot.DTO;
 
 import com.google.gson.annotations.SerializedName;
 

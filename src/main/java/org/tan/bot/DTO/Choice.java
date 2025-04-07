@@ -1,4 +1,4 @@
-package org.bot.DTO;
+package org.tan.bot.DTO;
 
 public class Choice {
     private MessageResponse message;

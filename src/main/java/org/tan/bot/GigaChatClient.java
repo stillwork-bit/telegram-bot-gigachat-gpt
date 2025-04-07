@@ -1,23 +1,29 @@
-package org.bot;
+package org.tan.bot;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import okhttp3.*;
-import org.bot.DTO.ChatMessage;
-import org.bot.DTO.ChatRequest;
-import org.bot.DTO.ChatResponse;
+import org.tan.bot.DTO.ChatMessage;
+import org.tan.bot.DTO.ChatRequest;
+import org.tan.bot.DTO.ChatResponse;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.net.ssl.*;
+
+import static org.tan.Constants.*;
 
 public class GigaChatClient {
-    private static final String AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth";
-    private static final String API_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions";
-    private static final String SCOPE = "GIGACHAT_API_PERS";
+    private String AUTH_URL = AUTH_URL_SBER;
+    private String API_URL = API_URL_SBER;
+    private String SCOPE = SCOPE_MODEL;
     private static final int MAX_HISTORY = 10;
 
     private final OkHttpClient client;
@@ -68,10 +74,11 @@ public class GigaChatClient {
     }
 
     private void ensureTokenValid() throws IOException {
-        if (accessToken == null || Instant.now().isAfter(tokenExpiration)) {
+        // Добавлена проверка на null для tokenExpiration
+        if (accessToken == null || (tokenExpiration != null && Instant.now().isAfter(tokenExpiration))) {
             tokenLock.lock();
             try {
-                if (accessToken == null || Instant.now().isAfter(tokenExpiration)) {
+                if (accessToken == null || (tokenExpiration != null && Instant.now().isAfter(tokenExpiration))) {
                     refreshAccessToken();
                 }
             } finally {
@@ -95,13 +102,27 @@ public class GigaChatClient {
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new IOException("Auth failed: " + response.code());
+                throw new IOException("Auth failed: " + response.code() + ", body: " + response.body().string());
             }
 
             JsonObject json = gson.fromJson(response.body().string(), JsonObject.class);
+
+            // Безопасное извлечение access_token
+            if (!json.has("access_token")) {
+                throw new IOException("Missing access_token in auth response");
+            }
             this.accessToken = json.get("access_token").getAsString();
-//            long expiresIn = json.get("expires_at").getAsLong() - json.get("created_at").getAsLong();
-//            this.tokenExpiration = Instant.now().plusSeconds(expiresIn - 300);
+
+            // Безопасное извлечение expires_in с fallback
+            long expiresIn = 3600; // значение по умолчанию
+            if (json.has("expires_in")) {
+                expiresIn = json.get("expires_in").getAsLong();
+            } else if (json.has("expires_at")) { // альтернативное поле
+                long expiresAt = json.get("expires_at").getAsLong();
+                expiresIn = expiresAt - Instant.now().getEpochSecond();
+            }
+
+            this.tokenExpiration = Instant.now().plusSeconds(expiresIn - 300);
         }
     }
 
@@ -132,8 +153,7 @@ public class GigaChatClient {
                 .url(API_URL)
                 .post(body)
                 .addHeader("Authorization", "Bearer " + accessToken)
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Content-Type", "application/json")
+                .addHeader("Content-Type", "application/json") // Убрал дублирование
                 .addHeader("RqUID", rqUID)
                 .addHeader("X-Session-ID", session.sessionId)
                 .build();
