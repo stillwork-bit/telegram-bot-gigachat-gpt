@@ -76,7 +76,7 @@ public class GigaChatBot extends TelegramLongPollingBot {
 
     private void handleStartCommand(String chatId) {
         currentMode = DialogMode.MAIN;
-        sendTextMessageMarkdown(chatId, loadMessage("main"));
+        sendTextMessageMarkdown(chatId, loadMessage("main.txt"));
         showMainMenu(chatId,
                 "Главное меню бота", "/start",
                 "Генерация тест-кейсов \uD83D\uDE0E", "/gpt",
@@ -86,14 +86,14 @@ public class GigaChatBot extends TelegramLongPollingBot {
     private void handleGptCommand(String chatId) {
         currentMode = DialogMode.GIGACHAT;
         sendPhotoMessage(chatId, "gigachat");
-        sendTextMessageMarkdown(chatId, loadMessage("gigachat"));
+        sendTextMessageMarkdown(chatId, loadMessage("gigachat.txt"));
     }
 
     private void handleTestItCommand(String chatId) {
         currentMode = DialogMode.TESTIT;
         pendingChatId = chatId;
         sendPhotoMessage(chatId, "testit");
-        sendTextMessageMarkdown(chatId, loadMessage("testit"));
+        sendTextMessageMarkdown(chatId, loadMessage("testit.txt"));
     }
 
     private void handleTestItInput(String chatId, String csvData) {
@@ -214,7 +214,7 @@ public class GigaChatBot extends TelegramLongPollingBot {
     }
 
     private static String loadMessage(String name) {
-        try (InputStream is = ClassLoader.getSystemResourceAsStream("messages/" + name + ".txt")) {
+        try (InputStream is = ClassLoader.getSystemResourceAsStream("messages/" + name)) {
             return new String(is.readAllBytes());
         } catch (IOException | NullPointerException e) {
             throw new RuntimeException("Can't load message: " + name, e);
