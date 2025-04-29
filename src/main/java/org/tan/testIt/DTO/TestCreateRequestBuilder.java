@@ -27,9 +27,8 @@ public class TestCreateRequestBuilder {
     }
 
     public TestCreateRequestBuilder addStep(String action, String expected, String testData, String comments) {
-        steps.add(new StepDto(
-                "<p class=\"tiptap-text\">" + action + "</p>",
-                "<p class=\"tiptap-text\">" + expected + "</p>",
+        steps.add(new StepDto(action,
+                expected,
                 testData,
                 comments
         ));
@@ -37,9 +36,8 @@ public class TestCreateRequestBuilder {
     }
 
     public TestCreateRequestBuilder addPreconditionStep(String action, String expected, String testData, String comments) {
-        preconditionSteps.add(new StepDto(
-                "<p class=\"tiptap-text\">" + action + "</p>",
-                "<p class=\"tiptap-text\">" + expected + "</p>",
+        preconditionSteps.add(new StepDto(action,
+                expected,
                 testData,
                 comments
         ));
@@ -47,9 +45,8 @@ public class TestCreateRequestBuilder {
     }
 
     public TestCreateRequestBuilder addPostconditionStep(String action, String expected, String testData, String comments) {
-        postconditionSteps.add(new StepDto(
-                "<p class=\"tiptap-text\">" + action + "</p>",
-                "<p class=\"tiptap-text\">" + expected + "</p>",
+        postconditionSteps.add(new StepDto(action,
+                expected,
                 testData,
                 comments
         ));
