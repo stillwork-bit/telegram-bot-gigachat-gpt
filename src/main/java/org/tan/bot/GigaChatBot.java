@@ -55,7 +55,7 @@ public class GigaChatBot extends TelegramLongPollingBot {
                 case "/start" -> handleStartCommand(chatId);
                 case "/gpt" -> handleGptCommand(chatId);
                 case "/testit" -> handleTestItCommand(chatId);
-                default -> showInvalidCommandMessage(chatId);
+                default -> showInvalidCommandMessage(chatId, messageText);
             }
         } catch (Exception e) {
             sendErrorMessage(chatId);
@@ -63,7 +63,8 @@ public class GigaChatBot extends TelegramLongPollingBot {
         }
     }
 
-    private void showInvalidCommandMessage(String chatId) {
+    private void showInvalidCommandMessage(String chatId, String messageText) {
+        log.error("Пользователь ввел некорректную команду: {}", messageText);
         String errorMessage = """
                 ❌ Введена некорректная команда, используйте:
                     
